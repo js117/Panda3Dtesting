@@ -1,11 +1,13 @@
-from math import pi, sin, cos
- 
+from pandac.PandaModules import * 
 from direct.showbase.ShowBase import ShowBase
 from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
 from panda3d.core import Point3
+
+from random import random
 import sys
+from math import pi, sin, cos
  
 class MyApp(ShowBase):
 	def __init__(self):
@@ -31,7 +33,7 @@ class MyApp(ShowBase):
 		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 		
 		
-		self.m = Actor("models/arm6.egg")
+		self.m = Actor("models/arm7.egg")
 		self.m.setScale(5, 5, 5)
 		self.m.reparentTo(self.render)
 		
@@ -48,12 +50,13 @@ class MyApp(ShowBase):
 		#J6_y = ob.pose.bones['Bone.009']	  # wrist roll
 		
 		self.J = [0,0,0,0,0,0,0]
-		self.J[1] = self.m.exposeJoint(None, 'modelRoot', 'Bone.001')
-		self.J[2] = self.m.exposeJoint(None, 'modelRoot', 'Bone.002')
-		self.J[3] = self.m.exposeJoint(None, 'modelRoot', 'Bone.004')
-		self.J[4] = self.m.exposeJoint(None, 'modelRoot', 'Bone.007')
-		self.J[5] = self.m.exposeJoint(None, 'modelRoot', 'Bone.008')
-		self.J[6] = self.m.exposeJoint(None, 'modelRoot', 'Bone.009')
+		self.J[1] = self.m.controlJoint(None, 'modelRoot', 'Bone.001')
+		self.J[2] = self.m.controlJoint(None, 'modelRoot', 'Bone.002')
+		self.J[3] = self.m.controlJoint(None, 'modelRoot', 'Bone.004')
+		self.J[4] = self.m.controlJoint(None, 'modelRoot', 'Bone.007')
+		self.J[5] = self.m.controlJoint(None, 'modelRoot', 'Bone.008')
+		self.J[6] = self.m.controlJoint(None, 'modelRoot', 'Bone.009')
+		
 		
 		self.Jpos = [0,0,0,0,0,0,0]
 		self.Jpos[1] = 0 # ID == 1
@@ -81,40 +84,13 @@ class MyApp(ShowBase):
 		self.accept('w', self.moveJoint, [1])
 		
 		self.accept('p', self.printJoints, [0])
+		self.accept('0', self.zeroJoints, [0])
 		
+		# Debug joint hierarchy visually: 
+		walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
 
 		
-		'''
-		self.pandaActor = Actor("models/panda-model",
-								{"walk": "models/panda-walk4"})
-		self.pandaActor.setScale(0.005, 0.005, 0.005)
-		self.pandaActor.reparentTo(self.render)
-		# Loop its animation.
-		self.pandaActor.loop("walk")
- 
-		# Create the four lerp intervals needed for the panda to
-		# walk back and forth.
-		pandaPosInterval1 = self.pandaActor.posInterval(13,
-														Point3(0, -10, 0),
-														startPos=Point3(0, 10, 0))
-		pandaPosInterval2 = self.pandaActor.posInterval(13,
-														Point3(0, 10, 0),
-														startPos=Point3(0, -10, 0))
-		pandaHprInterval1 = self.pandaActor.hprInterval(3,
-														Point3(180, 0, 0),
-														startHpr=Point3(0, 0, 0))
-		pandaHprInterval2 = self.pandaActor.hprInterval(3,
-														Point3(0, 0, 0),
-														startHpr=Point3(180, 0, 0))
- 
-		# Create and play the sequence that coordinates the intervals.
-		self.pandaPace = Sequence(pandaPosInterval1,
-								  pandaHprInterval1,
-								  pandaPosInterval2,
-								  pandaHprInterval2,
-								  name="pandaPace")
-		self.pandaPace.loop()
-		'''
+		
  
 	def switchJoint(self, i):
 		self.currentJoint = i
@@ -123,7 +99,11 @@ class MyApp(ShowBase):
 	def printJoints(self, i):
 		print("---")
 		for j in range(1, len(self.J)):
-			this_hpr = self.J[j].getHpr()
+			if j == 1:
+				this_hpr = self.J[j].getHpr(self.render)
+			else:
+				this_hpr = self.J[j].getHpr(self.J[j-1])
+			#this_hpr = self.J[j].getHpr(self.J[j])
 			this_h = round(this_hpr[0], 4)
 			this_p = round(this_hpr[1], 4)
 			this_r = round(this_hpr[2], 4)
@@ -144,16 +124,36 @@ class MyApp(ShowBase):
 			return
 		print("Moving selected joint :: "+str(self.currentJoint) + " "+str_dir)
 		j = self.currentJoint
-		this_hpr = self.J[j].getHpr()
+		this_hpr = self.J[j].getHpr(self.J[j])
+		
 		old_this_h = this_hpr[0]; new_this_h = old_this_h + dir*self.currentDegPerStep
-		old_this_p = this_hpr[1]; new_this_p = old_this_p + self.currentDegPerStep
-		old_this_r = this_hpr[2]; new_this_r = old_this_r + self.currentDegPerStep
+		old_this_p = this_hpr[1]; new_this_p = old_this_p + dir*self.currentDegPerStep
+		old_this_r = this_hpr[2]; new_this_r = old_this_r + dir*self.currentDegPerStep
+
+		# FIGURE OUT WHICH ROTATIONS ACTUALLY MOVE JOINTS PROPERLY: 
 		
-		self.J[j].setH(new_this_h)
-		self.J[j].setP(new_this_p)
-		self.J[j].setR(new_this_r)
+		self.J[j].setR(self.J[j], new_this_r)
 		
+		#if j == 1:
+		#	self.J[j].setR(self.J[j], new_this_r)
+		#
+		#if j == 2:
+		#	self.J[j].setR(self.J[j], new_this_r)
+		
+		#if j >= 2:
+		#	self.J[j].setH(self.J[j], new_this_h)
+		#else:
+		#	self.J[j].setH(new_this_h)
+		#self.J[j].setP(new_this_p)
+		#self.J[j].setR(new_this_r)
+	
+	def zeroJoints(self, i):
+		print("Zero-ing joints.")
+		for j in range(1, len(self.J)):
+			self.J[j].setHpr(0,0,0)
  
+ 
+	
  
 	# Define a procedure to move the camera.
 	def spinCameraTask(self, task):
@@ -162,6 +162,23 @@ class MyApp(ShowBase):
 		self.camera.setPos(20 * sin(angleRadians), -20.0 * cos(angleRadians), 3)
 		self.camera.setHpr(angleDegrees, 0, 0)
 		return Task.cont
+ 
+def walkJointHierarchy(actor, part, parentNode = None, indent = ""):
+		if isinstance(part, CharacterJoint):
+			np = actor.exposeJoint(None, 'modelRoot', part.getName())
+			if parentNode and parentNode.getName() != "root":
+				lines = LineSegs()
+				lines.setThickness(3.0)
+				lines.setColor(random(), random(), random())
+				lines.moveTo(0, 0, 0)
+				lines.drawTo(np.getPos(parentNode))
+				lnp = parentNode.attachNewNode(lines.create())
+				lnp.setBin("fixed", 40)
+				lnp.setDepthWrite(False)
+				lnp.setDepthTest(False)
+			parentNode = np
+		for child in part.getChildren():
+			walkJointHierarchy(actor, child, parentNode, indent + "  ") 
  
 app = MyApp()
 app.run()
