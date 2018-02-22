@@ -31,12 +31,12 @@ class MyApp(ShowBase):
 		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 		
 		
-		self.m = Actor("models/color_test.egg")
+		self.m = Actor("models/arm6.egg")
 		self.m.setScale(5, 5, 5)
 		self.m.reparentTo(self.render)
 		
 		
-		'''
+		
 		print("------- Joints: ---------")
 		print(self.m.listJoints())
 		
@@ -65,6 +65,9 @@ class MyApp(ShowBase):
 		
 		self.currentJoint = 1 # default to joint ID == 1
 		
+		self.currentDegPerStep = 1
+		self.degPerStepChangeFactor = 1.1
+		
 		# Set up key input
 		self.accept('escape', sys.exit)
 		self.accept('1', self.switchJoint, [1])
@@ -74,11 +77,11 @@ class MyApp(ShowBase):
 		self.accept('5', self.switchJoint, [5])
 		self.accept('6', self.switchJoint, [6])
 		
-		self.accept('q', self.moveJoint, [6])
-		self.accept('w', self.moveJoint, [6])
+		self.accept('q', self.moveJoint, [0])
+		self.accept('w', self.moveJoint, [1])
 		
 		self.accept('p', self.printJoints, [0])
-		'''
+		
 
 		
 		'''
@@ -120,10 +123,36 @@ class MyApp(ShowBase):
 	def printJoints(self, i):
 		print("---")
 		for j in range(1, len(self.J)):
-			print(self.J[j].getHpr()); print("---")
+			this_hpr = self.J[j].getHpr()
+			this_h = round(this_hpr[0], 4)
+			this_p = round(this_hpr[1], 4)
+			this_r = round(this_hpr[2], 4)
+			print("Joint :: "+str(j)+ " // "+"H: "+str(this_h)+" / "+"P: "+str(this_p)+" / "+"R: "+str(this_r)+" / "); 
+			print("---")
 		
 	def moveJoint(self, i):
-		print("Moving selected joint :: "+str(self.currentJoint))
+		dir = i
+		str_dir = ""
+		if i == 0:
+			str_dir = "forwards"
+			dir = -1
+		elif i == 1:
+			str_dir = "backwards"
+			dir = 1
+		else:
+			print("Error: moveJoint got unknown direction: "+str(i))
+			return
+		print("Moving selected joint :: "+str(self.currentJoint) + " "+str_dir)
+		j = self.currentJoint
+		this_hpr = self.J[j].getHpr()
+		old_this_h = this_hpr[0]; new_this_h = old_this_h + dir*self.currentDegPerStep
+		old_this_p = this_hpr[1]; new_this_p = old_this_p + self.currentDegPerStep
+		old_this_r = this_hpr[2]; new_this_r = old_this_r + self.currentDegPerStep
+		
+		self.J[j].setH(new_this_h)
+		self.J[j].setP(new_this_p)
+		self.J[j].setR(new_this_r)
+		
  
  
 	# Define a procedure to move the camera.
