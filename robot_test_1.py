@@ -31,22 +31,22 @@ class MyApp(ShowBase):
 		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
 		
 		
-		self.m = Actor("models/arm6.egg")
+		self.m = Actor("models/color_test.egg")
 		self.m.setScale(5, 5, 5)
 		self.m.reparentTo(self.render)
 		
 		
-		
+		'''
 		print("------- Joints: ---------")
 		print(self.m.listJoints())
-		'''
-		J1_y = ob.pose.bones['Bone.001']	  # base rotation / shoulder yaw
-		J2_y = ob.pose.bones['Bone.002']	  # shoulder pitch
-		J3_y = ob.pose.bones['Bone.004']	  # elbow pitch
-		J4_y = ob.pose.bones['Bone.007']	  # elbow roll
-		J5_y = ob.pose.bones['Bone.008']	  # wrist pitch
-		J6_y = ob.pose.bones['Bone.009']	  # wrist roll
-		'''
+		
+		#J1_y = ob.pose.bones['Bone.001']	  # base rotation / shoulder yaw
+		#J2_y = ob.pose.bones['Bone.002']	  # shoulder pitch
+		#J3_y = ob.pose.bones['Bone.004']	  # elbow pitch
+		#J4_y = ob.pose.bones['Bone.007']	  # elbow roll
+		#J5_y = ob.pose.bones['Bone.008']	  # wrist pitch
+		#J6_y = ob.pose.bones['Bone.009']	  # wrist roll
+		
 		self.J = [0,0,0,0,0,0,0]
 		self.J[1] = self.m.exposeJoint(None, 'modelRoot', 'Bone.001')
 		self.J[2] = self.m.exposeJoint(None, 'modelRoot', 'Bone.002')
@@ -77,8 +77,8 @@ class MyApp(ShowBase):
 		self.accept('q', self.moveJoint, [6])
 		self.accept('w', self.moveJoint, [6])
 		
-		
-		
+		self.accept('p', self.printJoints, [0])
+		'''
 
 		
 		'''
@@ -116,6 +116,11 @@ class MyApp(ShowBase):
 	def switchJoint(self, i):
 		self.currentJoint = i
 		print("Current joint switched to :: "+str(i))
+
+	def printJoints(self, i):
+		print("---")
+		for j in range(1, len(self.J)):
+			print(self.J[j].getHpr()); print("---")
 		
 	def moveJoint(self, i):
 		print("Moving selected joint :: "+str(self.currentJoint))
