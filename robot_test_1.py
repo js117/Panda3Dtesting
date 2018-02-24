@@ -4,14 +4,20 @@ from direct.task import Task
 from direct.actor.Actor import Actor
 from direct.interval.IntervalGlobal import Sequence
 from panda3d.core import Point3
+from direct.showbase.InputStateGlobal import inputState
+
+
 
 from random import random
 import sys
 from math import pi, sin, cos
+from FirstPersonCamera import FirstPersonCamera
  
 class MyApp(ShowBase):
 	def __init__(self):
 		ShowBase.__init__(self)
+		
+		self.running = True
 		
 		base.enableParticles()
 		# TODO: 
@@ -19,25 +25,33 @@ class MyApp(ShowBase):
 
  
 		# Disable the camera trackball controls.
+		# COMMENT OUT BELOW LINE to use mouse camera mode. 
 		#self.disableMouse()
  
 		# Load the environment model.
-		self.scene = self.loader.loadModel("models/environment")
+		self.scene = self.loader.loadModel("models/setting_test.egg")
 		# Reparent the model to render.
 		self.scene.reparentTo(self.render)
 		# Apply scale and position transforms on the model.
-		self.scene.setScale(0.25, 0.25, 0.25)
-		self.scene.setPos(-8, 42, 0)
+		self.scene.setScale(5.25, 5.25, 5.25)
+		self.scene.setPos(0, 0, 0)
  
 		# Add the spinCameraTask procedure to the task manager.
-		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask")
+		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask", priority=-100)
 		
 		
 		self.m = Actor("models/arm7.egg")
-		self.m.setScale(5, 5, 5)
+		self.m.setScale(3, 3, 3)
 		self.m.reparentTo(self.render)
 		
+		# LPoint3f(-9, 6, 6) / LVecBase3f(-104, -27, -1)
+		self.camera.setPos(-9, 6, 6)
+		self.camera.setHpr(-104, -27, -1)
+		#self.camera.setHpr(0,0,0)
+		#self.camera.lookAt(self.m)
 		
+		self.mouseLook = FirstPersonCamera(self, self.cam, self.render)		 
+
 		
 		print("------- Joints: ---------")
 		print(self.m.listJoints())
@@ -67,6 +81,7 @@ class MyApp(ShowBase):
 		self.Jpos[6] = 0 # ID == 6
 		
 		self.currentJoint = 1 # default to joint ID == 1
+		self.lastSelectedJoint = self.currentJoint
 		
 		self.currentDegPerStep = 1
 		self.degPerStepChangeFactor = 1.1
@@ -80,8 +95,17 @@ class MyApp(ShowBase):
 		self.accept('5', self.switchJoint, [5])
 		self.accept('6', self.switchJoint, [6])
 		
-		self.accept('q', self.moveJoint, [0])
-		self.accept('w', self.moveJoint, [1])
+		self.accept('z', self.adjustCamera, [0]) # hack for setting initial camera pos; uses current joint for x/y/z/h/p/r
+		self.accept('x', self.adjustCamera, [1])
+		
+		self.accept("enter", self.toggle) # to allow toggling between robot moving program and the first person WASD-camera 
+		
+		#self.accept('q', self.moveJoint, [0])
+		#self.accept('w', self.moveJoint, [1])
+		inputState.watchWithModifiers('qkey', 'q')
+		inputState.watchWithModifiers('wkey', 'w')
+		self.taskMgr.add(self.QWmoveTask, "QWmoveTask")
+
 		
 		self.accept('p', self.printJoints, [0])
 		self.accept('0', self.zeroJoints, [0])
@@ -90,10 +114,18 @@ class MyApp(ShowBase):
 		walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
 
 		
+	def QWmoveTask(self, task):
+		if inputState.isSet('qkey'):
+			self.moveJoint(0)
 		
+		if inputState.isSet('wkey'):
+			self.moveJoint(1)
+			
+		return task.cont	
  
 	def switchJoint(self, i):
 		self.currentJoint = i
+		self.lastSelectedJoint = self.currentJoint
 		print("Current joint switched to :: "+str(i))
 
 	def printJoints(self, i):
@@ -131,37 +163,71 @@ class MyApp(ShowBase):
 		old_this_r = this_hpr[2]; new_this_r = old_this_r + dir*self.currentDegPerStep
 
 		# FIGURE OUT WHICH ROTATIONS ACTUALLY MOVE JOINTS PROPERLY: 
+		if self.running:
+			self.J[j].setR(self.J[j], new_this_r)
 		
-		self.J[j].setR(self.J[j], new_this_r)
-		
-		#if j == 1:
-		#	self.J[j].setR(self.J[j], new_this_r)
-		#
-		#if j == 2:
-		#	self.J[j].setR(self.J[j], new_this_r)
-		
-		#if j >= 2:
-		#	self.J[j].setH(self.J[j], new_this_h)
-		#else:
-		#	self.J[j].setH(new_this_h)
-		#self.J[j].setP(new_this_p)
-		#self.J[j].setR(new_this_r)
 	
 	def zeroJoints(self, i):
 		print("Zero-ing joints.")
 		for j in range(1, len(self.J)):
 			self.J[j].setHpr(0,0,0)
  
- 
+	# Manual hack to adjust camera
+	def adjustCamera(self, i):
+		dir = i
+		if i == 0:
+			dir = -1
+		elif i == 1:
+			dir = 1
+		else:
+			print("Error: moveJoint got unknown direction: "+str(i))
+			return
+
+		curr_pos = self.camera.getPos(); curr_hpr = self.camera.getHpr()
+		j = self.currentJoint
+		if j == 1:
+			new_val = curr_pos[0] + dir*self.currentDegPerStep
+			self.camera.setPos(new_val, curr_pos[1], curr_pos[2])
+		if j == 2:
+			new_val = curr_pos[1] + dir*self.currentDegPerStep
+			self.camera.setPos(curr_pos[0], new_val, curr_pos[2])
+		if j == 3:
+			new_val = curr_pos[2] + dir*self.currentDegPerStep
+			self.camera.setPos(curr_pos[0], curr_pos[1], new_val)
+			
+		if j == 4:
+			new_val = curr_hpr[0] + dir*self.currentDegPerStep
+			self.camera.setHpr(new_val, curr_hpr[1], curr_hpr[2])
+		if j == 5:
+			new_val = curr_hpr[1] + dir*self.currentDegPerStep
+			self.camera.setHpr(curr_hpr[0], new_val, curr_hpr[2])
+		if j == 6:
+			new_val = curr_hpr[2] + dir*self.currentDegPerStep
+			self.camera.setHpr(curr_hpr[0], curr_hpr[1], new_val)
+
+		pos = self.camera.getPos(); ori = self.camera.getHpr()
+		print(str(pos) + " / " + str(ori))
 	
  
 	# Define a procedure to move the camera.
 	def spinCameraTask(self, task):
-		angleDegrees = task.time * 6.0
-		angleRadians = angleDegrees * (pi / 180.0)
-		self.camera.setPos(20 * sin(angleRadians), -20.0 * cos(angleRadians), 3)
-		self.camera.setHpr(angleDegrees, 0, 0)
-		return Task.cont
+		#angleDegrees = task.time * 6.0
+		#angleRadians = angleDegrees * (pi / 180.0)
+		#self.camera.setPos(-8 * sin(angleRadians), 8 * cos(angleRadians), 6)
+		#self.camera.setHpr(angleDegrees, 0, 0)
+		pos = self.camera.getPos(); ori = self.camera.getHpr()
+		print(str(pos) + " / " + str(ori))
+		return task.cont
+		
+		
+	## Call to start/stop control system 
+	def toggle(self): 
+		if(self.running): 
+			#self.currentJoint = 0 # hack: stop all motion so we can use WASD keyboard
+			self.running = False 
+		else: 
+			#self.currentJoint = self.lastSelectedJoint 
+			self.running = True 	
  
 def walkJointHierarchy(actor, part, parentNode = None, indent = ""):
 		if isinstance(part, CharacterJoint):
