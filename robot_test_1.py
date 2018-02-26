@@ -19,22 +19,49 @@ class MyApp(ShowBase):
 		
 		self.running = True
 		
+		############################################### PHYSICS SETUP ####################################################
 		base.enableParticles()
 		# TODO: 
 		# Follow the rest of the physics tutorial: https://www.panda3d.org/manual/index.php/Enabling_physics_on_a_node 
 
+		node1 = NodePath("PhysicsNode")
+		node1.reparentTo(self.render)
+		an1 = ActorNode("robot-arm-physics")
+		anp1 = node1.attachNewNode(an1)
+		base.physicsMgr.attachPhysicalNode(an1)
+		
+		node2 = NodePath("PhysicsNode")
+		node2.reparentTo(self.render)
+		an2 = ActorNode("setting-physics")
+		anp2 = node2.attachNewNode(an2)
+		base.physicsMgr.attachPhysicalNode(an2)
+		
+		gravityFN=ForceNode('world-forces')
+		gravityFNP=render.attachNewNode(gravityFN)
+		gravityForce=LinearVectorForce(0,0,-9.81) #gravity acceleration
+		gravityFN.addForce(gravityForce) 
+		#base.physicsMgr.addLinearForce(gravityForce)
+		
+		self.setupCD()
+		self.addFloor()
+		############################################## /PHYSICS SETUP ####################################################
+		
  
 		# Disable the camera trackball controls.
 		# COMMENT OUT BELOW LINE to use mouse camera mode. 
-		#self.disableMouse()
+		self.disableMouse()
  
 		# Load the environment model.
 		self.scene = self.loader.loadModel("models/setting_test.egg")
 		# Reparent the model to render.
-		self.scene.reparentTo(self.render)
+		self.scene.reparentTo(anp2) # self.render
 		# Apply scale and position transforms on the model.
 		self.scene.setScale(5.25, 5.25, 5.25)
 		self.scene.setPos(0, 0, 0)
+		col = self.scene.attachNewNode(CollisionNode("scene"))
+		col.node().addSolid(CollisionSphere(0, 0, 0, 0.1))
+		col.show()
+		base.cTrav.addCollider(col, self.notifier)
  
 		# Add the spinCameraTask procedure to the task manager.
 		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask", priority=-100)
@@ -42,7 +69,14 @@ class MyApp(ShowBase):
 		
 		self.m = Actor("models/arm7.egg")
 		self.m.setScale(3, 3, 3)
-		self.m.reparentTo(self.render)
+		# Physics: 
+		#jetpackGuy = loader.loadModel("models/jetpack_guy")
+		#jetpackGuy.reparentTo(anp)
+		self.m.reparentTo(anp1) # self.render
+		col = self.scene.attachNewNode(CollisionNode("robot"))
+		col.node().addSolid(CollisionSphere(0, 0, 0, 1))
+		col.show()
+		base.cTrav.addCollider(col, self.notifier)
 		
 		# LPoint3f(-9, 6, 6) / LVecBase3f(-104, -27, -1)
 		self.camera.setPos(-9, 6, 6)
@@ -95,8 +129,8 @@ class MyApp(ShowBase):
 		self.accept('5', self.switchJoint, [5])
 		self.accept('6', self.switchJoint, [6])
 		
-		self.accept('z', self.adjustCamera, [0]) # hack for setting initial camera pos; uses current joint for x/y/z/h/p/r
-		self.accept('x', self.adjustCamera, [1])
+		self.accept('z', self.zeroJoints, [0])
+		#self.accept('x', self.adjustCamera, [1])
 		
 		self.accept("enter", self.toggle) # to allow toggling between robot moving program and the first person WASD-camera 
 		
@@ -113,22 +147,44 @@ class MyApp(ShowBase):
 		# Debug joint hierarchy visually: 
 		walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
 
+	############################################## Physics functions ########################################################
+	def setupCD(self):
+		base.cTrav = CollisionTraverser()
+		base.cTrav.showCollisions(self.render)
+		self.notifier = CollisionHandlerEvent()
+		self.notifier.addInPattern("%fn-in-%in")
+		self.accept("robot-in-scene", self.onCollision)
+	
+	def onCollision(self, entry):
+		print("onCollision called")
+		#vel = random.uniform(0.01, 0.2)
+		#self.frowney.setPythonTag("velocity", vel)
+		
+	def addFloor(self):
+		floor = render.attachNewNode(CollisionNode("floor"))
+		floor.node().addSolid(CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0))))
+		floor.show()
 		
 	def QWmoveTask(self, task):
-		if inputState.isSet('qkey'):
+		if inputState.isSet('qkey') and self.running:
 			self.moveJoint(0)
-		
-		if inputState.isSet('wkey'):
+		if inputState.isSet('wkey') and self.running:
 			self.moveJoint(1)
-			
 		return task.cont	
  
 	def switchJoint(self, i):
+		if self.running == False:
+			print("Invalid command -- current in Manual Camera Mode. Press ENTER again to return to Robot Interface Mode.")
+			return
 		self.currentJoint = i
 		self.lastSelectedJoint = self.currentJoint
 		print("Current joint switched to :: "+str(i))
 
+	# Acting as a general debug function 
 	def printJoints(self, i):
+		if self.running == False:
+			print("Invalid command -- current in Manual Camera Mode. Press ENTER again to return to Robot Interface Mode.")
+			return
 		print("---")
 		for j in range(1, len(self.J)):
 			if j == 1:
@@ -140,9 +196,16 @@ class MyApp(ShowBase):
 			this_p = round(this_hpr[1], 4)
 			this_r = round(this_hpr[2], 4)
 			print("Joint :: "+str(j)+ " // "+"H: "+str(this_h)+" / "+"P: "+str(this_p)+" / "+"R: "+str(this_r)+" / "); 
-			print("---")
+		print("---")
+		print("Current Jpos values ::: ")
+		print(self.Jpos[1:])
+		pos = self.camera.getPos(); ori = self.camera.getHpr()
+		print(str(pos) + " / " + str(ori))
 		
 	def moveJoint(self, i):
+		if self.running == False:
+			print("Invalid command -- current in Manual Camera Mode. Press ENTER again to return to Robot Interface Mode.")
+			return
 		dir = i
 		str_dir = ""
 		if i == 0:
@@ -154,25 +217,29 @@ class MyApp(ShowBase):
 		else:
 			print("Error: moveJoint got unknown direction: "+str(i))
 			return
-		print("Moving selected joint :: "+str(self.currentJoint) + " "+str_dir)
 		j = self.currentJoint
 		this_hpr = self.J[j].getHpr(self.J[j])
-		
 		old_this_h = this_hpr[0]; new_this_h = old_this_h + dir*self.currentDegPerStep
 		old_this_p = this_hpr[1]; new_this_p = old_this_p + dir*self.currentDegPerStep
 		old_this_r = this_hpr[2]; new_this_r = old_this_r + dir*self.currentDegPerStep
 
 		# FIGURE OUT WHICH ROTATIONS ACTUALLY MOVE JOINTS PROPERLY: 
-		if self.running:
-			self.J[j].setR(self.J[j], new_this_r)
+		print("Moving selected joint :: "+str(self.currentJoint) + " "+str_dir)
+		self.Jpos[j] += dir*self.currentDegPerStep
+		self.J[j].setR(self.J[j], new_this_r)
 		
 	
 	def zeroJoints(self, i):
+		if self.running == False:
+			print("Invalid command -- current in Manual Camera Mode. Press ENTER again to return to Robot Interface Mode.")
+			return
 		print("Zero-ing joints.")
 		for j in range(1, len(self.J)):
-			self.J[j].setHpr(0,0,0)
+			self.Jpos[j] = 0
+		
  
 	# Manual hack to adjust camera
+	# Hack for setting initial camera pos; uses current joint for x/y/z/h/p/r
 	def adjustCamera(self, i):
 		dir = i
 		if i == 0:
@@ -223,10 +290,10 @@ class MyApp(ShowBase):
 	## Call to start/stop control system 
 	def toggle(self): 
 		if(self.running): 
-			#self.currentJoint = 0 # hack: stop all motion so we can use WASD keyboard
+			print("\n --- Entering Manual Camera Mode. Press ENTER again to return to Robot Interface Mode. ---\n")
 			self.running = False 
 		else: 
-			#self.currentJoint = self.lastSelectedJoint 
+			print("\n --- Returning to Robot Interface Mode. Press ENTER again to return to Manual Camera Mode. ---\n")
 			self.running = True 	
  
 def walkJointHierarchy(actor, part, parentNode = None, indent = ""):

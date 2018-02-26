@@ -1,0 +1,16 @@
+data/modules/globals.py.i
+data/modules/character.py.i
+data/res/textures/heightfield.png.i
+data/res/geometry/box.egg.i
+data/res/actors/gnum-stand.egg.i
+data/res/actors/gnum-walk.egg.i
+data/modules/aicontroller.py.i
+data/res/textures/grass.png.i
+data/modules/control.py.i
+data/res/actors/gnum.egg.i
+data/res/textures/gnum.png.i
+data/modules/__init__.py.i
+data/modules/location.py.i
+data/res/textures/grass.png.d
+data/main.py.i
+data/res/actors/gnum.egg.d
