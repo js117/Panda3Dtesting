@@ -20,10 +20,9 @@ class MyApp(ShowBase):
 		self.running = True
 		
 		############################################### PHYSICS SETUP ####################################################
+		# (don't know what I'm doing, just copied some lines from various physics tutorials) 
 		base.enableParticles()
-		# TODO: 
-		# Follow the rest of the physics tutorial: https://www.panda3d.org/manual/index.php/Enabling_physics_on_a_node 
-
+		
 		node1 = NodePath("PhysicsNode")
 		node1.reparentTo(self.render)
 		an1 = ActorNode("robot-arm-physics")
@@ -40,56 +39,39 @@ class MyApp(ShowBase):
 		gravityFNP=render.attachNewNode(gravityFN)
 		gravityForce=LinearVectorForce(0,0,-9.81) #gravity acceleration
 		gravityFN.addForce(gravityForce) 
-		#base.physicsMgr.addLinearForce(gravityForce)
+		#base.physicsMgr.addLinearForce(gravityForce) # everything falls through floor
 		
-		self.setupCD()
-		self.addFloor()
 		############################################## /PHYSICS SETUP ####################################################
 		
- 
-		# Disable the camera trackball controls.
-		# COMMENT OUT BELOW LINE to use mouse camera mode. 
 		self.disableMouse()
  
 		# Load the environment model.
 		self.scene = self.loader.loadModel("models/setting_test.egg")
-		# Reparent the model to render.
 		self.scene.reparentTo(anp2) # self.render
 		# Apply scale and position transforms on the model.
 		self.scene.setScale(5.25, 5.25, 5.25)
 		self.scene.setPos(0, 0, 0)
-		col = self.scene.attachNewNode(CollisionNode("scene"))
-		col.node().addSolid(CollisionSphere(0, 0, 0, 0.1))
-		col.show()
-		base.cTrav.addCollider(col, self.notifier)
- 
-		# Add the spinCameraTask procedure to the task manager.
-		#self.taskMgr.add(self.spinCameraTask, "SpinCameraTask", priority=-100)
 		
-		
+		# Load the robot arm
 		self.m = Actor("models/arm7.egg")
 		self.m.setScale(3, 3, 3)
 		# Physics: 
 		#jetpackGuy = loader.loadModel("models/jetpack_guy")
 		#jetpackGuy.reparentTo(anp)
-		self.m.reparentTo(anp1) # self.render
-		col = self.scene.attachNewNode(CollisionNode("robot"))
-		col.node().addSolid(CollisionSphere(0, 0, 0, 1))
-		col.show()
-		base.cTrav.addCollider(col, self.notifier)
+		self.m.reparentTo(self.render) # self.render, anp1
 		
-		# LPoint3f(-9, 6, 6) / LVecBase3f(-104, -27, -1)
+		# Set initial camera
 		self.camera.setPos(-9, 6, 6)
 		self.camera.setHpr(-104, -27, -1)
-		#self.camera.setHpr(0,0,0)
-		#self.camera.lookAt(self.m)
 		
+		# Initialize the useful first person camera class for debugging, positioning, etc
 		self.mouseLook = FirstPersonCamera(self, self.cam, self.render)		 
 
 		
 		print("------- Joints: ---------")
 		print(self.m.listJoints())
 		
+		# From blender: 
 		#J1_y = ob.pose.bones['Bone.001']	  # base rotation / shoulder yaw
 		#J2_y = ob.pose.bones['Bone.002']	  # shoulder pitch
 		#J3_y = ob.pose.bones['Bone.004']	  # elbow pitch
@@ -105,7 +87,6 @@ class MyApp(ShowBase):
 		self.J[5] = self.m.controlJoint(None, 'modelRoot', 'Bone.008')
 		self.J[6] = self.m.controlJoint(None, 'modelRoot', 'Bone.009')
 		
-		
 		self.Jpos = [0,0,0,0,0,0,0]
 		self.Jpos[1] = 0 # ID == 1
 		self.Jpos[2] = 0 # ID == 2
@@ -120,7 +101,8 @@ class MyApp(ShowBase):
 		self.currentDegPerStep = 1
 		self.degPerStepChangeFactor = 1.1
 		
-		# Set up key input
+		# Set up key input:
+		# 1, 2, ..., 6 select the different robot arm joints, Q and W move them forwards/back
 		self.accept('escape', sys.exit)
 		self.accept('1', self.switchJoint, [1])
 		self.accept('2', self.switchJoint, [2])
@@ -130,12 +112,9 @@ class MyApp(ShowBase):
 		self.accept('6', self.switchJoint, [6])
 		
 		self.accept('z', self.zeroJoints, [0])
-		#self.accept('x', self.adjustCamera, [1])
 		
 		self.accept("enter", self.toggle) # to allow toggling between robot moving program and the first person WASD-camera 
 		
-		#self.accept('q', self.moveJoint, [0])
-		#self.accept('w', self.moveJoint, [1])
 		inputState.watchWithModifiers('qkey', 'q')
 		inputState.watchWithModifiers('wkey', 'w')
 		self.taskMgr.add(self.QWmoveTask, "QWmoveTask")
@@ -146,24 +125,6 @@ class MyApp(ShowBase):
 		
 		# Debug joint hierarchy visually: 
 		walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
-
-	############################################## Physics functions ########################################################
-	def setupCD(self):
-		base.cTrav = CollisionTraverser()
-		base.cTrav.showCollisions(self.render)
-		self.notifier = CollisionHandlerEvent()
-		self.notifier.addInPattern("%fn-in-%in")
-		self.accept("robot-in-scene", self.onCollision)
-	
-	def onCollision(self, entry):
-		print("onCollision called")
-		#vel = random.uniform(0.01, 0.2)
-		#self.frowney.setPythonTag("velocity", vel)
-		
-	def addFloor(self):
-		floor = render.attachNewNode(CollisionNode("floor"))
-		floor.node().addSolid(CollisionPlane(Plane(Vec3(0, 0, 1), Point3(0, 0, 0))))
-		floor.show()
 		
 	def QWmoveTask(self, task):
 		if inputState.isSet('qkey') and self.running:
