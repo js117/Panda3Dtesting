@@ -21,25 +21,20 @@ class MyApp(ShowBase):
 		
 		############################################### PHYSICS SETUP ####################################################
 		# (don't know what I'm doing, just copied some lines from various physics tutorials) 
+		
+		#init collider system
+		traverser = CollisionTraverser()
+		base.cTrav = traverser
+		base.cTrav.setRespectPrevTransform(True)
+		
+		base.pusher = CollisionHandlerPusher()
+		base.pusher.addInPattern("%fn-into-%in")
+		base.pusher.addOutPattern("%fn-out-%in")
+
+		base.physics = PhysicsCollisionHandler()
+		base.physics.addInPattern("%fn-into-%in")
+		base.physics.addOutPattern("%fn-out-%in")
 		base.enableParticles()
-		
-		node1 = NodePath("PhysicsNode")
-		node1.reparentTo(self.render)
-		an1 = ActorNode("robot-arm-physics")
-		anp1 = node1.attachNewNode(an1)
-		base.physicsMgr.attachPhysicalNode(an1)
-		
-		node2 = NodePath("PhysicsNode")
-		node2.reparentTo(self.render)
-		an2 = ActorNode("setting-physics")
-		anp2 = node2.attachNewNode(an2)
-		base.physicsMgr.attachPhysicalNode(an2)
-		
-		gravityFN=ForceNode('world-forces')
-		gravityFNP=render.attachNewNode(gravityFN)
-		gravityForce=LinearVectorForce(0,0,-9.81) #gravity acceleration
-		gravityFN.addForce(gravityForce) 
-		#base.physicsMgr.addLinearForce(gravityForce) # everything falls through floor
 		
 		############################################## /PHYSICS SETUP ####################################################
 		
@@ -47,18 +42,35 @@ class MyApp(ShowBase):
  
 		# Load the environment model.
 		self.scene = self.loader.loadModel("models/setting_test.egg")
-		self.scene.reparentTo(anp2) # self.render
+		self.scene.reparentTo(self.render) # self.render
 		# Apply scale and position transforms on the model.
 		self.scene.setScale(5.25, 5.25, 5.25)
 		self.scene.setPos(0, 0, 0)
 		
 		# Load the robot arm
+		self.persona = render.attachNewNode('persona')
+		self.personaActorNode = ActorNode('personaActorNode')
+		self.personaActorNode.getPhysicsObject().setMass(35)
+		self.personaActorNP = self.persona.attachNewNode(self.personaActorNode)
+		base.physicsMgr.attachPhysicalNode(self.personaActorNode)
+
 		self.m = Actor("models/arm7.egg")
 		self.m.setScale(3, 3, 3)
-		# Physics: 
-		#jetpackGuy = loader.loadModel("models/jetpack_guy")
-		#jetpackGuy.reparentTo(anp)
-		self.m.reparentTo(self.render) # self.render, anp1
+		self.m.reparentTo(self.personaActorNP)
+		
+		#capture collision events
+		#self.accept('bola0CN-into-plataforma', self.changeState, ['ground',True ])
+		#self.accept('bola0CN-out-plataforma', self.changeState , ['ground',False])
+		
+		self.gravityFN=ForceNode('world-forces')
+		self.gravityFNP=render.attachNewNode(self.gravityFN)
+		self.gravityForce=LinearVectorForce(0,0,-9.81) #gravity acceleration
+		self.gravityFN.addForce(self.gravityForce)
+
+		#base.physicsMgr.addLinearForce(self.gravityForce)
+		
+		base.physics.addCollider(self.ball0NP, self.personaActorNP)
+		base.cTrav.addCollider(self.ball0NP, base.physics)
 		
 		# Set initial camera
 		self.camera.setPos(-9, 6, 6)
@@ -125,7 +137,18 @@ class MyApp(ShowBase):
 		
 		# Debug joint hierarchy visually: 
 		walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
+	
+	def setCollision(self, trav):
+		#colision nodes and solids
+		self.ball0 = CollisionSphere(0,0,1.5,1.5)
+		self.ball0NP = self.personaActorNP.attachNewNode(CollisionNode('bola0CN'))
+		self.ball0NP.node().addSolid(self.ball0)
+		self.ball0NP.show()
 		
+		
+
+
+	
 	def QWmoveTask(self, task):
 		if inputState.isSet('qkey') and self.running:
 			self.moveJoint(0)

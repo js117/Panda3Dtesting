@@ -1,0 +1,158 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN""http://www.w3.org/TR/html4/strict.dtd">
+<HEAD>
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <META name="description" content="Koparka - Panda3D level editor by Wezu">
+    <META name="Keywords" content="koparka, panda3d, p3d, level editor, wezu, gamedev, 3d, realtime">
+    <META name="author" content="Grzegorz 'Wezu' Kalinski">
+    <LINK rel="stylesheet" href="style.css" type="text/css" >
+    <LINK rel="shortcut icon" href="img/favico.png" >
+    <LINK rel="icon" type="image/png" href="img/favico.png" >
+    <LINK href="css/lightbox.css" rel="stylesheet" />
+    
+    <TITLE>Koparka Manual - Panda3D level editor</TITLE>
+</HEAD>
+
+<BODY>
+    <DIV id="navbar">
+        <IMG src="img/wezu.png" alt="Made by Wezu"> 
+        <H3>Table of contents:</H3>
+        <OL class="nav">
+            <LI>
+                <LABEL class="collapse" for="_1">Getting Started</LABEL>
+                <INPUT id="_1" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="index.html">Introduction</A></LI>
+                        <LI class="nav"><A href="history.html">History</A></LI>
+                        <LI class="nav"><A href="requirements.html">Requirements</A></LI>
+                        <LI class="nav"><A href="installation.html">Installation</A></LI>                    
+                        <LI class="nav"><A href="overview.html">Interface overview</A></LI>
+                    </UL>
+
+            </LI>  
+            <LI><LABEL class="collapse" for="_2">Heightmap paint mode</LABEL>
+                <INPUT id="_2" type="checkbox" checked>                
+                    <UL>
+                        <LI class="nav"><A href="h_brush.html">&gt;Controlling brushes</A></LI>
+                        <LI class="nav"><A href="h_raise.html">Raise Terrain</A></LI>
+                        <LI class="nav"><A href="h_lower.html">Lower Terrain</A></LI>
+                        <LI class="nav"><A href="h_level.html">Level Terrain</A></LI>
+                    </UL>
+            </LI> 
+            <LI><LABEL class="collapse" for="_3">Texture paint mode</LABEL>
+                <INPUT id="_3" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="t_brush.html">Controlling brushes</A></LI>
+                        <LI class="nav"><A href="t_change.html">Changing textures</A></LI>
+                        
+                        <LI class="nav"><A href="t_custom.html">Custom textures</A></LI>
+                    </UL>
+            </LI> 
+            <LI><LABEL class="collapse" for="_4">Grass paint mode</LABEL>
+                <INPUT id="_4" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="g_brush.html">Controlling brushes</A></LI>
+                        <LI class="nav"><A href="g_change.html">Changing textures</A></LI>
+                        
+                        <LI class="nav"><A href="g_custom.html">Custom textures</A></LI>
+                    </UL>
+            </LI>    
+            <LI><LABEL class="collapse" for="_5">Object place mode</LABEL>
+                <INPUT id="_5" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="obj_coll_mesh.html">Collision mesh</A></LI>
+                        <LI class="nav"><A href="obj_single.html">Single objects</A></LI>
+                        <LI class="nav"><A href="obj_multi.html">Multiple objects</A></LI>
+                        <LI class="nav"><A href="obj_walls.html">Walls</A></LI>                    
+                        <LI class="nav"><A href="obj_actors.html">Actors</A></LI>
+                        <LI class="nav"><A href="obj_fx.html">Lights, collisions, particle</A></LI>
+                        <LI class="nav"><A href="obj_pickup.html">Picking up objects</A></LI><LI class="nav"><A href="obj_custom.html">Custom assets</A></LI>
+                    </UL>
+            </LI> 
+            <LI><LABEL class="collapse" for="_6">Paint Walkmap mode</LABEL>
+                <INPUT id="_6" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="w_map.html">Walkmap</A></LI>                        
+                    </UL>
+            </LI>
+            <LI><LABEL class="collapse" for="_7">Map configuration</LABEL>
+                <INPUT id="_7" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="config_h2o.html">Water and Sky</A></LI>
+                        <LI class="nav"><A href="config_ter.html">Terrain</A></LI>
+                    </UL>
+            </LI>    
+            <LI><LABEL class="collapse" for="_8">Editor configuration</LABEL>
+                <INPUT id="_8" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="config_grid.html">Grid</A></LI>
+                        <LI class="nav"><A href="config_time.html">Time of day</A></LI>
+                        <LI class="nav"><A href="config_brush.html">Brush</A></LI>
+                        <LI class="nav"><A href="config_file.html">Config file</A></LI>
+                    </UL>
+            </LI>
+            <LI><LABEL class="collapse" for="_9">Saving and Loading</LABEL>
+                <INPUT id="_9" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="save_h.html">Save/Load dialog</A></LI>                    
+                    </UL>
+            </LI>
+        </OL>
+    </DIV>
+    <DIV id="top">        
+        <A href="overview.html" class="left">&lt;&lt;- PREVIOUS</A>
+         <A href="h_raise.html" class="right">NEXT -&gt;&gt;</A>        
+        <H1>Heightmap brush</H1>
+    </DIV> 
+    <DIV id="main">    
+        <H2>Heightmap</H2>
+        <DIV class="img">
+        <IMG src="img/heightmap.png"> 
+        <H4>A heightmap produced with the editor</H4>
+    </DIV>
+        <P>
+            A height map is an 2D grayscale image where the color of every pixel is correlated to the height of a point on the 3D map. The Koparka editor allows to edit a height map in real time and show how a terrain rendered with that map will look. Even though a user is actually drawing a 2d image, that virtual 2d canvas  is never shown – only how it looks applied to a 3D mesh. 
+        </P>        
+        
+        <H2>The Brush</H2>  
+        <DIV class="img">
+            <IMG src="img/screen0_small.png">             
+        </DIV>
+        <P>
+            The features drawn on the terrain are controlled with a brush. You can change the position, shape, size, rotation and strength of the brush. Holding the left mouse button will start drawing the selected feature on the terrain. 
+        </P>
+        <P>
+            The position of the brush is controlled with the mouse and displayed as a vertical line with two triangle arrows (blue and red) at one end (called the 3D cursor). The brush is automatically moved to where the mouse cursor points, but not to a point on the terrain mesh but on the grid plane. 
+        </P>
+        <P>In recent versions of the editor you can use a option called gl-picking - without going into to much detail, it is enough to say that using this option the 3D cursor is placed directly on the terrain mesh and not on the grid plane. It has a performance impact and it's disabled by default, to enable it change a config variable called "koparka-gl-select" to True (in the cfg.prc file).</P>
+        <P>
+            The shape of the brush can be selected by clicking on any of the brush shape buttons located at the  top of the window. The currently selected brush is highlighted green.
+        </P>
+        <P>
+            The size of the brush can be changed with A (smaller) and D (larger) keys. Holding down the A key will make the brush smaller, holding the D key will make it larger. At all times the current size of the brush is displayed as a numerical value in the bottom left corner of the window.
+        </P>
+        <P>
+            The size of the brush can also be changed, by clicking on the config button, entering a value in the Brush Scale field and clicking the OK button. 
+        </P>
+        <P>
+            The rotation of the brush can be changed using the Q and E buttons. Holding the Q button will rotate the brush anti-clockwise, and holding the E button will rotate it clockwise. At all times the rotation of the brush is displayed as a numerical value on the third icon in the bottom left corner of the window.
+        </P>
+        <P>
+            Just as the size, the rotation can be changed in the configuration dialog. The field labeled Heading is responsible for the brush rotation.
+        </P>
+        <P>
+            The strength of the brush can be controlled with W and S keys. Holding down the W key will increase the brush strength, whereas holding down the S key will decrease it. The strength of the brush is actually its transparency, where 0.0 is totally transparent and 1.0 is opaque. Using the Raise and Lower paint modes the strength controls how fast the feature is applied, using the Level mode it sets the desired level (height). At all times the current strength of the brush is displayed as a numerical value on the second icon in the bottom left corner of the window.
+        </P>
+        <P>In recent versions of the editor you can also change the size, strength and rotation of a brush by clicking the appropriate icon and adjusting a pop-up slider.</P>        
+        <DIV class="img">
+            <IMG src="img/slider.png">             
+            <H4>A pop-up slider</H4>
+        </DIV>
+        <P>
+            Like other brush setting it can also be set using the configuration dialog. 
+        </P>  
+        <DIV class="img">
+            <IMG src="img/screen6_small.png">             
+            <H4>Configuration dialog</H4>
+        </DIV>        
+    </DIV>
+</BODY>

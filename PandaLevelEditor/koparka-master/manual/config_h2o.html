@@ -1,0 +1,170 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN""http://www.w3.org/TR/html4/strict.dtd">
+<HEAD>
+    <META http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <META name="description" content="Koparka - Panda3D level editor by Wezu">
+    <META name="Keywords" content="koparka, panda3d, p3d, level editor, wezu, gamedev, 3d, realtime">
+    <META name="author" content="Grzegorz 'Wezu' Kalinski">
+    <LINK rel="stylesheet" href="style.css" type="text/css" >
+    <LINK rel="shortcut icon" href="img/favico.png" >
+    <LINK rel="icon" type="image/png" href="img/favico.png" >
+    <LINK href="css/lightbox.css" rel="stylesheet" />
+    
+    <TITLE>Koparka Manual - Panda3D level editor</TITLE>
+</HEAD>
+
+<BODY>
+    <DIV id="navbar">
+        <IMG src="img/wezu.png" alt="Made by Wezu"> 
+        <H3>Table of contents:</H3>
+        <OL class="nav">
+            <LI>
+                <LABEL class="collapse" for="_1">Getting Started</LABEL>
+                <INPUT id="_1" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="index.html">Introduction</A></LI>
+                        <LI class="nav"><A href="history.html">History</A></LI>
+                        <LI class="nav"><A href="requirements.html">Requirements</A></LI>
+                        <LI class="nav"><A href="installation.html">Installation</A></LI>                    
+                        <LI class="nav"><A href="overview.html">Interface overview</A></LI>
+                    </UL>
+
+            </LI>  
+            <LI><LABEL class="collapse" for="_2">Heightmap paint mode</LABEL>
+                <INPUT id="_2" type="checkbox">                
+                    <UL>
+                        <LI class="nav"><A href="h_brush.html">Controlling brushes</A></LI>
+                        <LI class="nav"><A href="h_raise.html">Raise Terrain</A></LI>
+                        <LI class="nav"><A href="h_lower.html">Lower Terrain</A></LI>
+                        <LI class="nav"><A href="h_level.html">Level Terrain</A></LI>
+                    </UL>
+            </LI> 
+            <LI><LABEL class="collapse" for="_3">Texture paint mode</LABEL>
+                <INPUT id="_3" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="t_brush.html">Controlling brushes</A></LI>
+                        <LI class="nav"><A href="t_change.html">Changing textures</A></LI>
+                        
+                        <LI class="nav"><A href="t_custom.html">Custom textures</A></LI>
+                    </UL>
+            </LI> 
+            <LI><LABEL class="collapse" for="_4">Grass paint mode</LABEL>
+                <INPUT id="_4" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="g_brush.html">Controlling brushes</A></LI>
+                        <LI class="nav"><A href="g_change.html">Changing textures</A></LI>
+                        
+                        <LI class="nav"><A href="g_custom.html">Custom textures</A></LI>
+                    </UL>
+            </LI>    
+            <LI><LABEL class="collapse" for="_5">Object place mode</LABEL>
+                <INPUT id="_5" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="obj_coll_mesh.html">Collision mesh</A></LI>
+                        <LI class="nav"><A href="obj_single.html">Single objects</A></LI>
+                        <LI class="nav"><A href="obj_multi.html">Multiple objects</A></LI>
+                        <LI class="nav"><A href="obj_walls.html">Walls</A></LI>                    
+                        <LI class="nav"><A href="obj_actors.html">Actors</A></LI>
+                        <LI class="nav"><A href="obj_fx.html">Lights, collisions, particle</A></LI>
+                        <LI class="nav"><A href="obj_pickup.html">Picking up objects</A></LI><LI class="nav"><A href="obj_custom.html">Custom assets</A></LI>
+                    </UL>
+            </LI> 
+            <LI><LABEL class="collapse" for="_6">Paint Walkmap mode</LABEL>
+                <INPUT id="_6" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="w_map.html">Walkmap</A></LI>                        
+                    </UL>
+            </LI>
+            <LI><LABEL class="collapse" for="_7">Map configuration</LABEL>
+                <INPUT id="_7" type="checkbox" checked>
+                    <UL>
+                        <LI class="nav"><A href="config_h2o.html">&gt;Water and Sky</A></LI>
+                        <LI class="nav"><A href="config_ter.html">Terrain</A></LI>
+                    </UL>
+            </LI>    
+            <LI><LABEL class="collapse" for="_8">Editor configuration</LABEL>
+                <INPUT id="_8" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="config_grid.html">Grid</A></LI>
+                        <LI class="nav"><A href="config_time.html">Time of day</A></LI>
+                        <LI class="nav"><A href="config_brush.html">Brush</A></LI>
+                        <LI class="nav"><A href="config_file.html">Config file</A></LI>
+                    </UL>
+            </LI>
+            <LI><LABEL class="collapse" for="_9">Saving and Loading</LABEL>
+                <INPUT id="_9" type="checkbox">
+                    <UL>
+                        <LI class="nav"><A href="save_h.html">Save/Load dialog</A></LI>                    
+                    </UL>
+            </LI>
+        </OL>
+    </DIV>
+    <DIV id="top">        
+        <A href="w_map.html" class="left">&lt;&lt;- PREVIOUS</A>
+         <A href="config_ter.html" class="right">NEXT -&gt;&gt;</A>        
+        <H1>Water and Sky configuration</H1>
+    </DIV> 
+    <DIV id="main">    
+        <DIV class="img">
+            <IMG src="img/sky_sea_icon.png"> 
+        </DIV>
+        <H4>Water, Sky and terrain config icon</H4>
+    <P>
+    The editor allows to configure a water plane and a sky dome, these are part of the map configuration because all the water and sky settings are saved with the map file. 
+    </P>    
+        <DIV class="img">
+            <IMG src="img/screen7_small.png"> 
+        </DIV>
+        <H4>Water, Sky and terrain config dialog</H4>
+    <P>
+    <H2>Sky settings</H2>
+    <P>
+    Sky tile<BR>
+    This is the number of times the cloud texture is repeated over the sky dome. A big number will make the clouds small and detailed but the repeating pattern of the texture can become obvious, a small number will create large, blurred clouds. 
+    </P>
+    <P>
+    Cloud speed <BR>
+    This is the distance the clouds move per frame in the texture space. The apparent speed at which the clouds move varies depending on the Sky tile value, but bigger numbers will always make the clouds move faster. 
+    </P>
+        <DIV class="img">        
+            <IMG src="img/screen27_small.png"> 
+        </DIV>
+        <DIV class="img">
+            <IMG src="img/screen28_small.png"> 
+        </DIV>
+        <H4>Sky tiling settings</H4>
+    
+    
+    <H2>Water settings</H2>
+    <P>
+    Wave tile<BR>
+    Water waves are repeated this many times. This refers to the kind of waves one can see on an open sea. The waves are not only a shading effect but they deform the surface of the water plane. The waves also produce foam
+    </P>
+    <P>
+    Wave height  <BR>  
+    Scaling factor for the waves. 
+    </P>
+    <P>
+    Wave XY Move    <BR>
+    This is the relative speed at which the waves move across the surface in the X and Y direction.
+    </P>
+    <P>
+    Water Tile    <BR>
+    Apart from large waves the water shader also uses a normal map (dx/dy map to be precise) for smaller details (ripples), this is the number of times this texture is repeated over the water surface. This will not effect the distortion effect – that is a screen space effect and it’s size changes with the view. 
+    </P>
+    <P>
+    Water speed    <BR>
+    A speed factor for the water ripples.
+   </P>
+   <P>
+    Water level    <BR>
+    The level at which the water plane is drawn. A value of -1 disables rendering water and updating the water reflection buffer.         
+    </P>
+        <DIV class="img">
+        <IMG src="img/water1.png"> 
+        <IMG src="img/water2.png"> 
+        <IMG src="img/water3.png"> 
+        <IMG src="img/water4.png"> 
+        </DIV>
+        <H4>Water settings</H4>
+    </DIV>
+</BODY>
