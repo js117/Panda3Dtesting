@@ -18,6 +18,9 @@ from pandac.PandaModules import *
 from direct.showbase.DirectObject import DirectObject
 from direct.actor.Actor import Actor
 
+from FirstPersonCamera import FirstPersonCamera
+from ArmActor import ArmActor
+
 
   # // test if geom o1 and geom o2 can collide
   # cat1 = dGeomGetCategoryBits (o1);
@@ -167,13 +170,14 @@ class clSim(DirectObject):
 
    def AddBox(self, strId = '', pt3Pos = Point3(0, 0, 20), vb4Color = VBase4( 1, 1, 1, 1) ):
 	  newbox = self.npBox.copyTo( render ) # npBox: from loadModel() 
-	  newbox.setColor( vb4Color )
+	  #newbox.setColor( vb4Color )
 	  newbox.setPos( pt3Pos )
 	  
 	  M = OdeMass()
-	  M.setBox(50, 1, 1, 1)
+	  M.setBox(20, 1, 1, 1)
 	  
 	  boxBody = OdeBody( self.world )
+	  boxBody.setMass(M)
 	  boxBody.setPosition( newbox.getPos() )
 	  boxBody.setQuaternion( newbox.getQuat() )
 	  
@@ -185,29 +189,11 @@ class clSim(DirectObject):
 	  boxGeom.setBody( boxBody )
 	  
 	  self.dictDynamicObjects[ boxGeom.getId().this ] = ( strId, boxGeom, boxBody, newbox )
+
 	  
-   def AddTriMesh(self, npObj, strId = '', pt3Pos = Point3(0, 0, 20), vb4Color = VBase4( 1, 1, 1, 1) ):
-	  newMesh = npObj.copyTo( render ) # npBox: from loadModel() 
-	  newMesh.setColor( vb4Color )
-	  newMesh.setPos( pt3Pos )
-	  
-	  M = OdeMass()
-	  M.setBox(50, 1, 1, 1)
-	  
-	  meshBody = OdeBody( self.world )
-	  meshBody.setPosition( newMesh.getPos() )
-	  meshBody.setQuaternion( newMesh.getQuat() )
-	  
-	  meshGeom = OdeBoxGeom( self.space, 1, 1, 1 )
-	  meshGeom.setCollideBits( BitMask32( 3 ) )
-	  meshGeom.setCategoryBits( BitMask32( 2 ) )
-	  
-	  ## Links the transformation matrices of the space and the world together.
-	  meshGeom.setBody( meshBody )
-	  
-	  self.dictDynamicObjects[ meshGeom.getId().this ] = ( strId, meshGeom, meshBody, newMesh )
-	  
+   # Added by JS 
    def AddDynamicTriMeshObject(self, npObj, strName = '', bitMaskCategory = BitMask32(0x0), bitMaskCollideWith = BitMask32(0x0)):
+	  npObj.reparentTo( render )
 	  trimeshData = OdeTriMeshData( npObj, True )
 	  
 	  trimeshBody = OdeBody( self.world ) 
@@ -222,13 +208,16 @@ class clSim(DirectObject):
 	  trimeshGeom.setBody( trimeshBody )
 	  
 	  id = trimeshGeom.getId().this
-	  self.dictStaticObjects[ id ] = ( strName, trimeshGeom )
+	  print("trimeshGeom Id: "+str(id))
+	  self.dictDynamicObjects[ trimeshGeom.getId().this ] = ( strName, trimeshGeom, trimeshBody, npObj )
+
+	  
 	  print("AddDynamicTriMeshObject function successful")
 
 scale = 20
 #objCamera = clCameraHandler( pt3CameraPos = Point3(0, -scale*4, scale*4 ), tupNearFar = (0.05, scale*20 ) )
 objCamera = None
-base.cam.setPos( Point3(0, -scale*4, scale*4 ) )
+base.cam.setPos( Point3(0, -scale*2, scale*2 ) )
 base.cam.lookAt( Point3(0, 0, 0 ) )
 
 ground = MakeWall( scale )
@@ -255,7 +244,14 @@ global objSim
 global nStartTime
 
 # Look at AddBox function for hints ? 
-arm = Actor("models/arm7.egg")
+#arm = Actor("models/arm7.egg")
+
+arm = ArmActor(base, "models/arm7.egg")
+#arm.m.setScale(6,6,6)
+#arm.m.copyTo( render )
+
+mouseLook = FirstPersonCamera(base, base.cam, render)
+
 #arm.setScale(10, 10, 10)
 #arm.setPos(5,-5,0)
 #arm.reparentTo(render)
@@ -266,7 +262,9 @@ objSim.AddStaticTriMeshObject( left, 'left', bitMaskCategory = BitMask32( 1 ), b
 objSim.AddStaticTriMeshObject( right, 'right', bitMaskCategory = BitMask32( 1 ), bitMaskCollideWith = BitMask32( 2 ) )
 objSim.AddStaticTriMeshObject( front, 'front', bitMaskCategory = BitMask32( 1 ), bitMaskCollideWith = BitMask32( 2 ) )
 
-objSim.AddTriMesh( arm, 'arm', ) #  bitMaskCategory = BitMask32( 2 ), bitMaskCollideWith = BitMask32( 3 )
+objSim.AddDynamicTriMeshObject( arm.m, 'arm', bitMaskCategory = BitMask32( 2 ), bitMaskCollideWith = BitMask32( 3 ) ) 
+
+#objSim.AddTriMesh( arm.m, 'arm' ) #  bitMaskCategory = BitMask32( 2 ), bitMaskCollideWith = BitMask32( 3 )
 
 #objSim.AddBox( strId = 'red', vb4Color = (0, 0.6, 0, 1) )
 nBoxes = 0

@@ -55,7 +55,7 @@ class FirstPersonCamera(DirectObject.DirectObject):
         self.rollRight = False 
         
         # sensitivity settings 
-        self.movSens = 2
+        self.movSens = 10
         self.movSensFast = self.movSens * 5
         self.rollSens = 50 
         self.sensX = self.sensY = 0.2       

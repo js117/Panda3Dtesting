@@ -11,53 +11,22 @@ from direct.showbase.InputStateGlobal import inputState
 from random import random
 import sys
 from math import pi, sin, cos
-from FirstPersonCamera import FirstPersonCamera
- 
-class MyApp(ShowBase):
-	def __init__(self):
-		ShowBase.__init__(self)
-		
+
+# Import examples:
+# from FirstPersonCamera import FirstPersonCamera
+# from ArmActor import ArmActor
+# arm = ArmActor(base, "models/arm7.egg")
+
+class ArmActor(ShowBase):
+
+	def __init__(self, gameApp, modelPathString):
+	
 		self.running = True
-		
-		############################################### PHYSICS SETUP ####################################################
-		# (don't know what I'm doing, just copied some lines from various physics tutorials) 
-		
-		#init collider system
-		traverser = CollisionTraverser()
-		base.cTrav = traverser
-		base.cTrav.setRespectPrevTransform(True)
-		
-		base.pusher = CollisionHandlerPusher()
-		base.pusher.addInPattern("%fn-into-%in")
-		base.pusher.addOutPattern("%fn-out-%in")
-
-		base.physics = PhysicsCollisionHandler()
-		base.physics.addInPattern("%fn-into-%in")
-		base.physics.addOutPattern("%fn-out-%in")
-		base.enableParticles()
-		
-		############################################## /PHYSICS SETUP ####################################################
-		
-		self.disableMouse()
- 
-		# Load the environment model.
-		#self.scene = self.loader.loadModel("models/setting_test.egg")
-		#self.scene.reparentTo(self.render) # self.render
-		# Apply scale and position transforms on the model.
-		#self.scene.setScale(5.25, 5.25, 5.25)
-		#self.scene.setPos(0, 0, 0)
-		
-		self.m = Actor("models/arm7.egg")
-		self.m.setScale(3, 3, 3)
-		self.m.reparentTo(self.render)
-		
-		# Set initial camera
-		self.camera.setPos(-9, 6, 6)
-		self.camera.setHpr(-104, -27, -1)
-		
-		# Initialize the useful first person camera class for debugging, positioning, etc
-		self.mouseLook = FirstPersonCamera(self, self.cam, self.render)		 
-
+	
+		self.gameApp = gameApp
+	
+		self.m = Actor(modelPathString) # "models/arm7.egg"
+		#self.m.setScale(3, 3, 3)
 		
 		print("------- Joints: ---------")
 		print(self.m.listJoints())
@@ -69,7 +38,7 @@ class MyApp(ShowBase):
 		#J4_y = ob.pose.bones['Bone.007']	  # elbow roll
 		#J5_y = ob.pose.bones['Bone.008']	  # wrist pitch
 		#J6_y = ob.pose.bones['Bone.009']	  # wrist roll
-		
+			
 		self.J = [0,0,0,0,0,0,0]
 		self.J[1] = self.m.controlJoint(None, 'modelRoot', 'Bone.001')
 		self.J[2] = self.m.controlJoint(None, 'modelRoot', 'Bone.002')
@@ -78,7 +47,8 @@ class MyApp(ShowBase):
 		self.J[5] = self.m.controlJoint(None, 'modelRoot', 'Bone.008')
 		self.J[6] = self.m.controlJoint(None, 'modelRoot', 'Bone.009')
 		
-		# TESTING: expose joint adding collision geometry: 
+		# "You can create collision geometry in a separate model and attach it to the various joints of your actor later via the exposeJoint() method. 
+		# Collision geometry will always be rigid geometry--your actor will be like a tin man, not a cowardly lion." 
 		
 		self.Jpos = [0,0,0,0,0,0,0]
 		self.Jpos[1] = 0 # ID == 1
@@ -89,7 +59,6 @@ class MyApp(ShowBase):
 		self.Jpos[6] = 0 # ID == 6
 		
 		self.currentJoint = 1 # default to joint ID == 1
-		self.lastSelectedJoint = self.currentJoint
 		
 		self.currentDegPerStep = 1
 		self.degPerStepChangeFactor = 1.1
@@ -110,17 +79,15 @@ class MyApp(ShowBase):
 		
 		inputState.watchWithModifiers('qkey', 'q')
 		inputState.watchWithModifiers('wkey', 'w')
-		self.taskMgr.add(self.QWmoveTask, "QWmoveTask")
+		self.gameApp.taskMgr.add(self.QWmoveTask, "QWmoveTask")
 
 		
 		self.accept('p', self.printJoints, [0])
 		self.accept('0', self.zeroJoints, [0])
 		
 		# Debug joint hierarchy visually: 
-		walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
-
-
-	
+		self.walkJointHierarchy(self.m, self.m.getPartBundle('modelRoot'), None)
+		
 	def QWmoveTask(self, task):
 		if inputState.isSet('qkey') and self.running:
 			self.moveJoint(0)
@@ -192,67 +159,8 @@ class MyApp(ShowBase):
 		print("Zero-ing joints.")
 		for j in range(1, len(self.J)):
 			self.Jpos[j] = 0
-		
- 
-	# Manual hack to adjust camera
-	# Hack for setting initial camera pos; uses current joint for x/y/z/h/p/r
-	def adjustCamera(self, i):
-		dir = i
-		if i == 0:
-			dir = -1
-		elif i == 1:
-			dir = 1
-		else:
-			print("Error: moveJoint got unknown direction: "+str(i))
-			return
-
-		curr_pos = self.camera.getPos(); curr_hpr = self.camera.getHpr()
-		j = self.currentJoint
-		if j == 1:
-			new_val = curr_pos[0] + dir*self.currentDegPerStep
-			self.camera.setPos(new_val, curr_pos[1], curr_pos[2])
-		if j == 2:
-			new_val = curr_pos[1] + dir*self.currentDegPerStep
-			self.camera.setPos(curr_pos[0], new_val, curr_pos[2])
-		if j == 3:
-			new_val = curr_pos[2] + dir*self.currentDegPerStep
-			self.camera.setPos(curr_pos[0], curr_pos[1], new_val)
 			
-		if j == 4:
-			new_val = curr_hpr[0] + dir*self.currentDegPerStep
-			self.camera.setHpr(new_val, curr_hpr[1], curr_hpr[2])
-		if j == 5:
-			new_val = curr_hpr[1] + dir*self.currentDegPerStep
-			self.camera.setHpr(curr_hpr[0], new_val, curr_hpr[2])
-		if j == 6:
-			new_val = curr_hpr[2] + dir*self.currentDegPerStep
-			self.camera.setHpr(curr_hpr[0], curr_hpr[1], new_val)
-
-		pos = self.camera.getPos(); ori = self.camera.getHpr()
-		print(str(pos) + " / " + str(ori))
-	
- 
-	# Define a procedure to move the camera.
-	def spinCameraTask(self, task):
-		#angleDegrees = task.time * 6.0
-		#angleRadians = angleDegrees * (pi / 180.0)
-		#self.camera.setPos(-8 * sin(angleRadians), 8 * cos(angleRadians), 6)
-		#self.camera.setHpr(angleDegrees, 0, 0)
-		pos = self.camera.getPos(); ori = self.camera.getHpr()
-		print(str(pos) + " / " + str(ori))
-		return task.cont
-		
-		
-	## Call to start/stop control system 
-	def toggle(self): 
-		if(self.running): 
-			print("\n --- Entering Manual Camera Mode. Press ENTER again to return to Robot Interface Mode. ---\n")
-			self.running = False 
-		else: 
-			print("\n --- Returning to Robot Interface Mode. Press ENTER again to return to Manual Camera Mode. ---\n")
-			self.running = True 	
- 
-def walkJointHierarchy(actor, part, parentNode = None, indent = ""):
+	def walkJointHierarchy(self, actor, part, parentNode = None, indent = ""):
 		if isinstance(part, CharacterJoint):
 			np = actor.exposeJoint(None, 'modelRoot', part.getName())
 			if parentNode and parentNode.getName() != "root":
@@ -267,7 +175,13 @@ def walkJointHierarchy(actor, part, parentNode = None, indent = ""):
 				lnp.setDepthTest(False)
 			parentNode = np
 		for child in part.getChildren():
-			walkJointHierarchy(actor, child, parentNode, indent + "  ") 
- 
-app = MyApp()
-app.run()
+			self.walkJointHierarchy(actor, child, parentNode, indent + "  ") 
+			
+	## Call to start/stop control system 
+	def toggle(self): 
+		if(self.running): 
+			print("\n --- Entering Manual Camera Mode. Press ENTER again to return to Robot Interface Mode. ---\n")
+			self.running = False 
+		else: 
+			print("\n --- Returning to Robot Interface Mode. Press ENTER again to return to Manual Camera Mode. ---\n")
+			self.running = True 
