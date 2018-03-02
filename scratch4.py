@@ -247,7 +247,7 @@ global nStartTime
 #arm = Actor("models/arm7.egg")
 
 arm = ArmActor(base, "models/arm7.egg")
-#arm.m.setScale(6,6,6)
+arm.m.setScale(6,6,6)
 #arm.m.copyTo( render )
 
 mouseLook = FirstPersonCamera(base, base.cam, render)
